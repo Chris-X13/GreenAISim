@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GreenAISim Mockup</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>GreenAISim: AI Sustainability Simulator</h1>
+
+    <div class="card">
+      <h2>1. Model Parameters</h2>
+      <label>Model Type
+        <select>
+          <option>Transformer (e.g., BERT)</option>
+          <option>CNN</option>
+          <option>MLP</option>
+        </select>
+      </label>
+      <label>Training Epochs <input type="number" placeholder="e.g., 10" /></label>
+      <label>Precision
+        <select>
+          <option>FP32</option>
+          <option>FP16</option>
+          <option>INT8</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>2. Hardware Configuration</h2>
+      <label>GPU Type
+        <select>
+          <option>NVIDIA A100</option>
+          <option>NVIDIA V100</option>
+          <option>NVIDIA T4</option>
+        </select>
+      </label>
+      <label>Compute Hours <input type="number" placeholder="e.g., 40" /></label>
+    </div>
+
+    <div class="card">
+      <h2>3. Deployment Location</h2>
+      <label>Region
+        <select>
+          <option>US West (carbon intensive)</option>
+          <option>EU Central (medium)</option>
+          <option>Nordics (low carbon)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>4. Inference Profile</h2>
+      <label>Inference Frequency (per day) <input type="number" placeholder="e.g., 10000" /></label>
+      <label>Deployment Duration (months) <input type="number" placeholder="e.g., 12" /></label>
+    </div>
+
+    <button>Simulate Environmental Impact</button>
+  </div>
+</body>
+</html>
