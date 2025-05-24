@@ -42,16 +42,31 @@ input, select {
   border-radius: 4px;
 }
 button {
-  display: block;
-  width: 100%;
-  padding: 12px;
+  display: inline-block;
+  padding: 10px 20px;
   font-size: 16px;
   background-color: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
+  margin: 5px 0;
 }
 button:hover {
   background-color: #218838;
+}
+.presets {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.presets button {
+  margin: 0 5px;
+  background: #007bff;
+}
+.result {
+  background: #f1f3f5;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  margin-top: 20px;
 }

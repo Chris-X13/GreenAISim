@@ -4,28 +4,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GreenAISim Mockup</title>
+  <title>GreenAISim: Interactive Mockup</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>GreenAISim: AI Sustainability Simulator</h1>
 
+    <div class="presets">
+      <button onclick="applyPreset('gpt')">Preset: GPT-style Model</button>
+      <button onclick="applyPreset('edge')">Preset: Edge Deployment</button>
+    </div>
+
     <div class="card">
       <h2>1. Model Parameters</h2>
-      <label>Model Type
-        <select>
-          <option>Transformer (e.g., BERT)</option>
-          <option>CNN</option>
-          <option>MLP</option>
+      <label title="e.g., Transformer models like BERT or GPT">Model Type
+        <select id="modelType">
+          <option value="transformer">Transformer (e.g., BERT)</option>
+          <option value="cnn">CNN</option>
+          <option value="mlp">MLP</option>
         </select>
       </label>
-      <label>Training Epochs <input type="number" placeholder="e.g., 10" /></label>
+      <label>Training Epochs <input id="epochs" type="number" placeholder="e.g., 10" /></label>
       <label>Precision
-        <select>
-          <option>FP32</option>
-          <option>FP16</option>
-          <option>INT8</option>
+        <select id="precision">
+          <option value="fp32">FP32</option>
+          <option value="fp16">FP16</option>
+          <option value="int8">INT8</option>
         </select>
       </label>
     </div>
@@ -33,33 +39,108 @@
     <div class="card">
       <h2>2. Hardware Configuration</h2>
       <label>GPU Type
-        <select>
-          <option>NVIDIA A100</option>
-          <option>NVIDIA V100</option>
-          <option>NVIDIA T4</option>
+        <select id="gpuType">
+          <option value="a100">NVIDIA A100</option>
+          <option value="v100">NVIDIA V100</option>
+          <option value="t4">NVIDIA T4</option>
         </select>
       </label>
-      <label>Compute Hours <input type="number" placeholder="e.g., 40" /></label>
+      <label>Compute Hours <input id="computeHours" type="number" placeholder="e.g., 40" /></label>
     </div>
 
     <div class="card">
       <h2>3. Deployment Location</h2>
       <label>Region
-        <select>
-          <option>US West (carbon intensive)</option>
-          <option>EU Central (medium)</option>
-          <option>Nordics (low carbon)</option>
+        <select id="region">
+          <option value="us">US West (high carbon)</option>
+          <option value="eu">EU Central (medium)</option>
+          <option value="nordics">Nordics (low carbon)</option>
         </select>
       </label>
     </div>
 
     <div class="card">
       <h2>4. Inference Profile</h2>
-      <label>Inference Frequency (per day) <input type="number" placeholder="e.g., 10000" /></label>
-      <label>Deployment Duration (months) <input type="number" placeholder="e.g., 12" /></label>
+      <label>Inference Frequency (per day) <input id="inferenceFreq" type="number" placeholder="e.g., 10000" /></label>
+      <label>Deployment Duration (months) <input id="duration" type="number" placeholder="e.g., 12" /></label>
     </div>
 
-    <button>Simulate Environmental Impact</button>
+    <button onclick="simulateImpact()">Simulate Environmental Impact</button>
+
+    <div id="result" class="result"></div>
+    <canvas id="ghgChart" style="max-width: 600px; margin: 30px auto;"></canvas>
   </div>
+
+  <script>
+    const emissionFactors = { a100: 1.0, v100: 0.8, t4: 0.6 };
+    const regionIntensity = { us: 0.6, eu: 0.4, nordics: 0.1 };
+
+    function simulateImpact() {
+      const epochs = parseFloat(document.getElementById('epochs').value) || 0;
+      const computeHours = parseFloat(document.getElementById('computeHours').value) || 0;
+      const gpu = document.getElementById('gpuType').value;
+      const region = document.getElementById('region').value;
+      const freq = parseFloat(document.getElementById('inferenceFreq').value) || 0;
+      const duration = parseFloat(document.getElementById('duration').value) || 0;
+
+      const trainingEmissions = computeHours * emissionFactors[gpu] * regionIntensity[region];
+      const inferenceEmissions = freq * 0.00005 * 30 * duration * regionIntensity[region];
+      const hardwareEmissions = 50 * emissionFactors[gpu];
+
+      const total = trainingEmissions + inferenceEmissions + hardwareEmissions;
+
+      document.getElementById('result').innerHTML = `
+        <h3>Estimated Emissions: ${total.toFixed(2)} kg CO₂e</h3>
+        <p><strong>Training:</strong> ${trainingEmissions.toFixed(2)} kg<br/>
+           <strong>Inference:</strong> ${inferenceEmissions.toFixed(2)} kg<br/>
+           <strong>Hardware:</strong> ${hardwareEmissions.toFixed(2)} kg</p>
+      `;
+
+      renderChart(trainingEmissions, inferenceEmissions, hardwareEmissions);
+    }
+
+    function renderChart(training, inference, hardware) {
+      const ctx = document.getElementById('ghgChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Training', 'Inference', 'Hardware'],
+          datasets: [{
+            label: 'Emissions (kg CO₂e)',
+            data: [training, inference, hardware],
+            backgroundColor: ['#28a745', '#17a2b8', '#ffc107']
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+
+    function applyPreset(type) {
+      if (type === 'gpt') {
+        document.getElementById('modelType').value = 'transformer';
+        document.getElementById('epochs').value = 20;
+        document.getElementById('precision').value = 'fp32';
+        document.getElementById('gpuType').value = 'a100';
+        document.getElementById('computeHours').value = 100;
+        document.getElementById('region').value = 'us';
+        document.getElementById('inferenceFreq').value = 20000;
+        document.getElementById('duration').value = 12;
+      } else if (type === 'edge') {
+        document.getElementById('modelType').value = 'mlp';
+        document.getElementById('epochs').value = 5;
+        document.getElementById('precision').value = 'int8';
+        document.getElementById('gpuType').value = 't4';
+        document.getElementById('computeHours').value = 5;
+        document.getElementById('region').value = 'nordics';
+        document.getElementById('inferenceFreq').value = 1000;
+        document.getElementById('duration').value = 6;
+      }
+    }
+  </script>
 </body>
 </html>
