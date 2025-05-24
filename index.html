@@ -6,30 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GreenAISim</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js">function applyPreset(type) {
-      if (type === 'gpt') {
-        document.getElementById("modelType").value = "transformer";
-        document.getElementById("epochs").value = 20;
-        document.getElementById("precision").value = "fp32";
-        document.getElementById("processorType").value = "gpu";
-        document.getElementById("hardwareModel").value = "a100";
-        document.getElementById("computeHours").value = 100;
-        document.getElementById("region").value = "us";
-        document.getElementById("inferenceFreq").value = 20000;
-        document.getElementById("duration").value = 12;
-      } else if (type === 'edge') {
-        document.getElementById("modelType").value = "mlp";
-        document.getElementById("epochs").value = 5;
-        document.getElementById("precision").value = "int8";
-        document.getElementById("processorType").value = "tpu";
-        document.getElementById("hardwareModel").value = "tpu-v5e";
-        document.getElementById("computeHours").value = 5;
-        document.getElementById("region").value = "nordics";
-        document.getElementById("inferenceFreq").value = 1000;
-        document.getElementById("duration").value = 6;
-      }
-    }
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
@@ -37,19 +14,20 @@
       <button onclick="applyPreset('gpt')">Preset: GPT-style Model</button>
       <button onclick="applyPreset('edge')">Preset: Edge Deployment</button>
     </div>
+
     <h1>GreenAISim: AI Sustainability Simulator</h1>
 
     <div class="card">
       <h2>1. Model Parameters</h2>
-      <label>Model Size (FLOPs in billions):
-        <input type="number" id="modelSize" placeholder="e.g., 100" value="100" />
-      </label>
       <label>Model Type:
         <select id="modelType">
           <option value="transformer">Transformer (e.g., BERT)</option>
           <option value="cnn">CNN</option>
           <option value="mlp">MLP</option>
         </select>
+      </label>
+      <label>Model Size (parameters in billions):
+        <input type="number" id="modelSize" placeholder="e.g., 1" value="1" />
       </label>
       <label>Training Epochs: <input type="number" id="epochs" placeholder="e.g., 10" /></label>
       <label>Precision:
@@ -84,16 +62,16 @@
 
     <div class="card">
       <h2>3. Deployment Location</h2>
-      <label>Power Usage Effectiveness (PUE):
-        <input type="range" id="pue" min="1.1" max="2.0" step="0.1" value="1.3" oninput="document.getElementById('pueVal').innerText=this.value" />
-        <span id="pueVal">1.3</span>
-      </label>
       <label>Region:
         <select id="region">
           <option value="us">US West (high carbon)</option>
           <option value="eu">EU Central (medium)</option>
           <option value="nordics">Nordics (low carbon)</option>
         </select>
+      </label>
+      <label>Power Usage Effectiveness (PUE):
+        <input type="range" id="pue" min="1.1" max="2.0" step="0.1" value="1.3" oninput="document.getElementById('pueVal').innerText=this.value" />
+        <span id="pueVal">1.3</span>
       </label>
     </div>
 
@@ -110,68 +88,87 @@
   </div>
 
   <script>
+    function applyPreset(type) {
+      if (type === 'gpt') {
+        document.getElementById("modelType").value = "transformer";
+        document.getElementById("modelSize").value = 175;
+        document.getElementById("epochs").value = 20;
+        document.getElementById("precision").value = "fp32";
+        document.getElementById("processorType").value = "gpu";
+        document.getElementById("hardwareModel").value = "a100";
+        document.getElementById("computeHours").value = 100;
+        document.getElementById("region").value = "us";
+        document.getElementById("pue").value = 1.3;
+        document.getElementById("pueVal").innerText = 1.3;
+        document.getElementById("reuseModel").checked = false;
+        document.getElementById("inferenceFreq").value = 20000;
+        document.getElementById("duration").value = 12;
+      } else if (type === 'edge') {
+        document.getElementById("modelType").value = "mlp";
+        document.getElementById("modelSize").value = 1;
+        document.getElementById("epochs").value = 5;
+        document.getElementById("precision").value = "int8";
+        document.getElementById("processorType").value = "tpu";
+        document.getElementById("hardwareModel").value = "tpu-v5e";
+        document.getElementById("computeHours").value = 5;
+        document.getElementById("region").value = "nordics";
+        document.getElementById("pue").value = 1.1;
+        document.getElementById("pueVal").innerText = 1.1;
+        document.getElementById("reuseModel").checked = true;
+        document.getElementById("inferenceFreq").value = 1000;
+        document.getElementById("duration").value = 6;
+      }
+    }
+
     let chart;
 
     async function simulateImpact() {
       const payload = {
-      modelSize: +document.getElementById("modelSize").value,
-      pue: +document.getElementById("pue").value,
-      reuse: document.getElementById("reuseModel").checked,
-      gridIntensity: 0,
         modelType: document.getElementById("modelType").value,
+        modelSize: +document.getElementById("modelSize").value,
         epochs: +document.getElementById("epochs").value,
         precision: document.getElementById("precision").value,
         gpuType: document.getElementById("hardwareModel").value,
         computeHours: +document.getElementById("computeHours").value,
         region: document.getElementById("region").value,
+        pue: +document.getElementById("pue").value,
+        reuse: document.getElementById("reuseModel").checked,
         inferenceFreq: +document.getElementById("inferenceFreq").value,
         duration: +document.getElementById("duration").value,
       };
 
+      const intensityMap = { us: 0.6, eu: 0.4, nordics: 0.1 };
+      payload.gridIntensity = intensityMap[payload.region] || 0.6;
+
       try {
-        const intensityMap = {
-          "us": 0.6,
-          "eu": 0.4,
-          "nordics": 0.1
-        };
-        const intensity = intensityMap[payload.region] || 0.6;
-        payload.gridIntensity = intensity;
-
-// Adjust compute hours for model size
-const baseFlops = 100;
-const flopsFactor = payload.modelSize / baseFlops;
-payload.computeHours *= flopsFactor;
-
         const response = await fetch("https://greenaisim-backend.onrender.com/calculate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
         });
         const result = await response.json();
-// Backend is assumed to handle reuse and PUE adjustment
         document.getElementById("result").innerHTML = `
           <h3>Total Emissions: ${result.total} kg CO₂e</h3>
           <p>Training: ${result.training} kg CO₂e</p>
           <p>Inference: ${result.inference} kg CO₂e</p>
           <p>Hardware: ${result.hardware} kg CO₂e</p>`;
-
         renderChart(result.training, result.inference, result.hardware);
-      } catch (err) {
+      } catch {
         document.getElementById("result").innerHTML = "<p style='color:red'>Error: Could not fetch data.</p>";
       }
     }
 
     function renderChart(training, inference, hardware) {
-      const ctx = document.getElementById('chart').getContext('2d');
+      const ctx = document.getElementById("chart").getContext("2d");
       if (chart) chart.destroy();
       chart = new Chart(ctx, {
-        type: 'bar',
+        type: "bar",
         data: {
-          labels: ['Training', 'Inference', 'Hardware'],
+          labels: ["Training", "Inference", "Hardware"],
           datasets: [{
-            label: 'Emissions (kg CO₂e)',
+            label: "Emissions (kg CO₂e)",
             data: [training, inference, hardware],
-            backgroundColor: ['#28a745', '#17a2b8', '#ffc107']
+            backgroundColor: ["#28a745", "#17a2b8", "#ffc107"]
           }]
         },
         options: {
@@ -180,29 +177,6 @@ payload.computeHours *= flopsFactor;
         }
       });
     }
-  function applyPreset(type) {
-      if (type === 'gpt') {
-        document.getElementById("modelType").value = "transformer";
-        document.getElementById("epochs").value = 20;
-        document.getElementById("precision").value = "fp32";
-        document.getElementById("processorType").value = "gpu";
-        document.getElementById("hardwareModel").value = "a100";
-        document.getElementById("computeHours").value = 100;
-        document.getElementById("region").value = "us";
-        document.getElementById("inferenceFreq").value = 20000;
-        document.getElementById("duration").value = 12;
-      } else if (type === 'edge') {
-        document.getElementById("modelType").value = "mlp";
-        document.getElementById("epochs").value = 5;
-        document.getElementById("precision").value = "int8";
-        document.getElementById("processorType").value = "tpu";
-        document.getElementById("hardwareModel").value = "tpu-v5e";
-        document.getElementById("computeHours").value = 5;
-        document.getElementById("region").value = "nordics";
-        document.getElementById("inferenceFreq").value = 1000;
-        document.getElementById("duration").value = 6;
-      }
-    }
-</script>
+  </script>
 </body>
 </html>
