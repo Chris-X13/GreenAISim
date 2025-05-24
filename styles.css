@@ -1,8 +1,7 @@
 
 body {
   font-family: Arial, sans-serif;
-  background: #f8f9fa;
-  margin: 0;
+  background: #f4f4f4;
   padding: 20px;
 }
 .container {
@@ -11,23 +10,16 @@ body {
   background: white;
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 h1 {
   text-align: center;
-  font-size: 28px;
-  margin-bottom: 20px;
 }
 .card {
-  border: 1px solid #ddd;
-  padding: 16px;
+  margin: 20px 0;
+  padding: 15px;
+  background: #f9f9f9;
   border-radius: 8px;
-  margin-bottom: 20px;
-  background-color: #fff;
-}
-.card h2 {
-  font-size: 20px;
-  margin-bottom: 10px;
 }
 label {
   display: block;
@@ -36,37 +28,25 @@ label {
 input, select {
   width: 100%;
   padding: 8px;
-  margin-top: 4px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  margin-top: 5px;
 }
 button {
-  display: inline-block;
-  padding: 10px 20px;
+  width: 100%;
+  padding: 12px;
   font-size: 16px;
   background-color: #28a745;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  margin: 5px 0;
 }
 button:hover {
   background-color: #218838;
 }
-.presets {
-  text-align: center;
-  margin-bottom: 20px;
-}
-.presets button {
-  margin: 0 5px;
-  background: #007bff;
-}
 .result {
-  background: #f1f3f5;
-  padding: 20px;
-  border-radius: 10px;
-  text-align: center;
   margin-top: 20px;
+  padding: 15px;
+  background: #eef;
+  border-radius: 8px;
+  text-align: center;
 }
