@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GreenAISim</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
@@ -70,9 +71,12 @@
 
     <button onclick="simulateImpact()">Simulate Environmental Impact</button>
     <div id="result" class="result"></div>
+    <canvas id="chart" style="max-width:600px; margin:30px auto;"></canvas>
   </div>
 
   <script>
+    let chart;
+
     async function simulateImpact() {
       const payload = {
         modelType: document.getElementById("modelType").value,
@@ -97,9 +101,31 @@
           <p>Training: ${result.training} kg CO₂e</p>
           <p>Inference: ${result.inference} kg CO₂e</p>
           <p>Hardware: ${result.hardware} kg CO₂e</p>`;
+
+        renderChart(result.training, result.inference, result.hardware);
       } catch (err) {
         document.getElementById("result").innerHTML = "<p style='color:red'>Error: Could not fetch data.</p>";
       }
+    }
+
+    function renderChart(training, inference, hardware) {
+      const ctx = document.getElementById('chart').getContext('2d');
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Training', 'Inference', 'Hardware'],
+          datasets: [{
+            label: 'Emissions (kg CO₂e)',
+            data: [training, inference, hardware],
+            backgroundColor: ['#28a745', '#17a2b8', '#ffc107']
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
     }
   </script>
 </body>
