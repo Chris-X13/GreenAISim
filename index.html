@@ -1,16 +1,19 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GreenAISim (Backend-Connected)</title>
+  <title>GreenAISim (Full Version)</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
   <div class="container">
     <h1>GreenAISim: AI Sustainability Simulator</h1>
-
+    <div class="presets">
+      <button onclick="applyPreset('gpt')">Preset: GPT-style Model</button>
+      <button onclick="applyPreset('edge')">Preset: Edge Deployment</button>
+    </div>
     <div class="card">
       <h2>1. Model Parameters</h2>
       <label>Model Type
@@ -20,7 +23,7 @@
           <option value="mlp">MLP</option>
         </select>
       </label>
-      <label>Training Epochs <input id="epochs" type="number" /></label>
+      <label>Training Epochs <input id="epochs" type="number" placeholder="e.g., 10" /></label>
       <label>Precision
         <select id="precision">
           <option value="fp32">FP32</option>
@@ -29,7 +32,6 @@
         </select>
       </label>
     </div>
-
     <div class="card">
       <h2>2. Hardware Configuration</h2>
       <label>GPU Type
@@ -39,9 +41,8 @@
           <option value="t4">NVIDIA T4</option>
         </select>
       </label>
-      <label>Compute Hours <input id="computeHours" type="number" /></label>
+      <label>Compute Hours <input id="computeHours" type="number" placeholder="e.g., 100" /></label>
     </div>
-
     <div class="card">
       <h2>3. Deployment Location</h2>
       <label>Region
@@ -52,17 +53,15 @@
         </select>
       </label>
     </div>
-
     <div class="card">
       <h2>4. Inference Profile</h2>
-      <label>Inference Frequency (per day) <input id="inferenceFreq" type="number" /></label>
-      <label>Deployment Duration (months) <input id="duration" type="number" /></label>
+      <label>Inference Frequency (per day) <input id="inferenceFreq" type="number" placeholder="e.g., 10000" /></label>
+      <label>Deployment Duration (months) <input id="duration" type="number" placeholder="e.g., 12" /></label>
     </div>
-
     <button onclick="simulateImpact()">Simulate with Backend</button>
     <div id="result" class="result"></div>
+    <canvas id="ghgChart" style="max-width: 600px; margin: 30px auto;"></canvas>
   </div>
-
   <script>
     async function simulateImpact() {
       const payload = {
@@ -75,24 +74,60 @@
         inferenceFreq: document.getElementById('inferenceFreq').value,
         duration: document.getElementById('duration').value
       };
-
       try {
         const response = await fetch("https://greenaisim-backend.onrender.com/calculate", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-
         const result = await response.json();
         document.getElementById('result').innerHTML = `
           <h3>Estimated Emissions: ${result.total} kg CO₂e</h3>
           <p><strong>Training:</strong> ${result.training} kg<br/>
              <strong>Inference:</strong> ${result.inference} kg<br/>
              <strong>Hardware:</strong> ${result.hardware} kg</p>`;
+        renderChart(result.training, result.inference, result.hardware);
       } catch (error) {
         document.getElementById('result').innerHTML = `<p style="color:red">Error: ${error.message}</p>`;
+      }
+    }
+    function renderChart(training, inference, hardware) {
+      const ctx = document.getElementById('ghgChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Training', 'Inference', 'Hardware'],
+          datasets: [{
+            label: 'Emissions (kg CO₂e)',
+            data: [training, inference, hardware],
+            backgroundColor: ['#28a745', '#17a2b8', '#ffc107']
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+    function applyPreset(type) {
+      if (type === 'gpt') {
+        document.getElementById('modelType').value = 'transformer';
+        document.getElementById('epochs').value = 20;
+        document.getElementById('precision').value = 'fp32';
+        document.getElementById('gpuType').value = 'a100';
+        document.getElementById('computeHours').value = 100;
+        document.getElementById('region').value = 'us';
+        document.getElementById('inferenceFreq').value = 20000;
+        document.getElementById('duration').value = 12;
+      } else if (type === 'edge') {
+        document.getElementById('modelType').value = 'mlp';
+        document.getElementById('epochs').value = 5;
+        document.getElementById('precision').value = 'int8';
+        document.getElementById('gpuType').value = 't4';
+        document.getElementById('computeHours').value = 5;
+        document.getElementById('region').value = 'nordics';
+        document.getElementById('inferenceFreq').value = 1000;
+        document.getElementById('duration').value = 6;
       }
     }
   </script>
