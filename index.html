@@ -6,10 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GreenAISim</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js">function applyPreset(type) {
+      if (type === 'gpt') {
+        document.getElementById("modelType").value = "transformer";
+        document.getElementById("epochs").value = 20;
+        document.getElementById("precision").value = "fp32";
+        document.getElementById("processorType").value = "gpu";
+        document.getElementById("hardwareModel").value = "a100";
+        document.getElementById("computeHours").value = 100;
+        document.getElementById("region").value = "us";
+        document.getElementById("inferenceFreq").value = 20000;
+        document.getElementById("duration").value = 12;
+      } else if (type === 'edge') {
+        document.getElementById("modelType").value = "mlp";
+        document.getElementById("epochs").value = 5;
+        document.getElementById("precision").value = "int8";
+        document.getElementById("processorType").value = "tpu";
+        document.getElementById("hardwareModel").value = "tpu-v5e";
+        document.getElementById("computeHours").value = 5;
+        document.getElementById("region").value = "nordics";
+        document.getElementById("inferenceFreq").value = 1000;
+        document.getElementById("duration").value = 6;
+      }
+    }
+</script>
 </head>
 <body>
   <div class="container">
+    <div class="presets">
+      <button onclick="applyPreset('gpt')">Preset: GPT-style Model</button>
+      <button onclick="applyPreset('edge')">Preset: Edge Deployment</button>
+    </div>
     <h1>GreenAISim: AI Sustainability Simulator</h1>
 
     <div class="card">
@@ -127,6 +154,29 @@
         }
       });
     }
-  </script>
+  function applyPreset(type) {
+      if (type === 'gpt') {
+        document.getElementById("modelType").value = "transformer";
+        document.getElementById("epochs").value = 20;
+        document.getElementById("precision").value = "fp32";
+        document.getElementById("processorType").value = "gpu";
+        document.getElementById("hardwareModel").value = "a100";
+        document.getElementById("computeHours").value = 100;
+        document.getElementById("region").value = "us";
+        document.getElementById("inferenceFreq").value = 20000;
+        document.getElementById("duration").value = 12;
+      } else if (type === 'edge') {
+        document.getElementById("modelType").value = "mlp";
+        document.getElementById("epochs").value = 5;
+        document.getElementById("precision").value = "int8";
+        document.getElementById("processorType").value = "tpu";
+        document.getElementById("hardwareModel").value = "tpu-v5e";
+        document.getElementById("computeHours").value = 5;
+        document.getElementById("region").value = "nordics";
+        document.getElementById("inferenceFreq").value = 1000;
+        document.getElementById("duration").value = 6;
+      }
+    }
+</script>
 </body>
 </html>
